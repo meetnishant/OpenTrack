@@ -52,22 +52,23 @@ export function PlaybackPanel({ vehicleId, onHistoryLoaded, onPlaybackUpdate }: 
       interval = setInterval(() => {
         setCurrentIndex(prev => {
           const next = prev + 1;
-          onPlaybackUpdate(next);
-          if (next >= history.count - 1) {
-            setIsPlaying(false);
-            return prev;
-          }
-          return next;
+          return next >= history.count - 1 ? history.count - 1 : next;
         });
       }, 100 / playSpeed);
+    } else if (isPlaying && history && currentIndex >= history.count - 1) {
+      setIsPlaying(false);
     }
     return () => clearInterval(interval);
-  }, [isPlaying, history, currentIndex, playSpeed, onPlaybackUpdate]);
+  }, [isPlaying, history, currentIndex, playSpeed]);
+
+  // Sync index to parent
+  useEffect(() => {
+    onPlaybackUpdate(currentIndex);
+  }, [currentIndex, onPlaybackUpdate]);
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseInt(e.target.value);
     setCurrentIndex(val);
-    onPlaybackUpdate(val);
   };
 
   return (
