@@ -23,9 +23,6 @@
 ![Geofencing & Alerts](public/screenshots/geofencing.png)
 *Draw complex perimeters to trigger real-time boundary violations.*
 
-### Historical Replay Engine
-![Time-Series Playback](public/screenshots/playback.png)
-*Scrub through months of PostGIS location data with millisecond precision.*
 
 ---
 
