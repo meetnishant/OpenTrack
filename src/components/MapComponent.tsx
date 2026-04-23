@@ -18,65 +18,114 @@ interface MapComponentProps {
   onGeofenceUpdate?: (geofences: any[]) => void;
 }
 
-// MapLibre compatible styles for gl-draw
 const DRAW_STYLES = [
   {
-    'id': 'gl-draw-polygon-fill-inactive',
-    'type': 'fill',
-    'filter': ['all', ['==', 'active', 'false'], ['==', '$type', 'Polygon'], ['!=', 'mode', 'static']],
-    'paint': {
-      'fill-color': '#4338ca',
-      'fill-outline-color': '#4338ca',
-      'fill-opacity': 0.1
-    }
+    "id": "gl-draw-polygon-fill-inactive",
+    "type": "fill",
+    "filter": ["all", ["==", "active", "false"], ["==", "$type", "Polygon"], ["!=", "mode", "static"]],
+    "paint": { "fill-color": "#4338ca", "fill-outline-color": "#4338ca", "fill-opacity": 0.1 }
   },
   {
-    'id': 'gl-draw-polygon-fill-active',
-    'type': 'fill',
-    'filter': ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon']],
-    'paint': {
-      'fill-color': '#6366f1',
-      'fill-outline-color': '#6366f1',
-      'fill-opacity': 0.2
-    }
+    "id": "gl-draw-polygon-fill-active",
+    "type": "fill",
+    "filter": ["all", ["==", "active", "true"], ["==", "$type", "Polygon"]],
+    "paint": { "fill-color": "#6366f1", "fill-outline-color": "#6366f1", "fill-opacity": 0.2 }
   },
   {
-    'id': 'gl-draw-line-inactive',
-    'type': 'line',
-    'filter': ['all', ['==', 'active', 'false'], ['==', '$type', 'LineString'], ['!=', 'mode', 'static']],
-    'layout': { 'line-cap': 'round', 'line-join': 'round' },
-    'paint': { 'line-color': '#4338ca', 'line-width': 2 }
+    "id": "gl-draw-polygon-midpoint",
+    "type": "circle",
+    "filter": ["all", ["==", "$type", "Point"], ["==", "meta", "midpoint"]],
+    "paint": { "circle-radius": 4, "circle-color": "#6366f1" }
   },
   {
-    'id': 'gl-draw-line-active',
-    'type': 'line',
-    'filter': ['all', ['==', 'active', 'true'], ['==', '$type', 'LineString']],
-    'layout': { 'line-cap': 'round', 'line-join': 'round' },
-    'paint': { 'line-color': '#6366f1', 'line-dasharray': ['literal', [2, 2]], 'line-width': 2 }
+    "id": "gl-draw-polygon-stroke-inactive",
+    "type": "line",
+    "filter": ["all", ["==", "active", "false"], ["==", "$type", "Polygon"], ["!=", "mode", "static"]],
+    "layout": { "line-cap": "round", "line-join": "round" },
+    "paint": { "line-color": "#4338ca", "line-width": 2 }
   },
   {
-    'id': 'gl-draw-polygon-and-line-vertex-stroke-inactive',
-    'type': 'circle',
-    'filter': ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point'], ['!=', 'mode', 'static']],
-    'paint': { 'circle-radius': 5, 'circle-color': '#fff' }
+    "id": "gl-draw-polygon-stroke-active",
+    "type": "line",
+    "filter": ["all", ["==", "active", "true"], ["==", "$type", "Polygon"]],
+    "layout": { "line-cap": "round", "line-join": "round" },
+    "paint": { "line-color": "#6366f1", "line-dasharray": ["literal", [2, 2]], "line-width": 2 }
   },
   {
-    'id': 'gl-draw-polygon-and-line-vertex-inactive',
-    'type': 'circle',
-    'filter': ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point'], ['!=', 'mode', 'static']],
-    'paint': { 'circle-radius': 3, 'circle-color': '#4338ca' }
+    "id": "gl-draw-line-inactive",
+    "type": "line",
+    "filter": ["all", ["==", "active", "false"], ["==", "$type", "LineString"], ["!=", "mode", "static"]],
+    "layout": { "line-cap": "round", "line-join": "round" },
+    "paint": { "line-color": "#4338ca", "line-width": 2 }
   },
   {
-    'id': 'gl-draw-point-inactive',
-    'type': 'circle',
-    'filter': ['all', ['==', 'active', 'false'], ['==', '$type', 'Point'], ['!=', 'mode', 'static']],
-    'paint': { 'circle-radius': 5, 'circle-color': '#4338ca' }
+    "id": "gl-draw-line-active",
+    "type": "line",
+    "filter": ["all", ["==", "active", "true"], ["==", "$type", "LineString"]],
+    "layout": { "line-cap": "round", "line-join": "round" },
+    "paint": { "line-color": "#6366f1", "line-dasharray": ["literal", [2, 2]], "line-width": 2 }
   },
   {
-    'id': 'gl-draw-point-active',
-    'type': 'circle',
-    'filter': ['all', ['==', 'active', 'true'], ['==', '$type', 'Point']],
-    'paint': { 'circle-radius': 7, 'circle-color': '#6366f1' }
+    "id": "gl-draw-polygon-and-line-vertex-stroke-inactive",
+    "type": "circle",
+    "filter": ["all", ["==", "meta", "vertex"], ["==", "$type", "Point"], ["!=", "mode", "static"]],
+    "paint": { "circle-radius": 5, "circle-color": "#fff" }
+  },
+  {
+    "id": "gl-draw-polygon-and-line-vertex-inactive",
+    "type": "circle",
+    "filter": ["all", ["==", "meta", "vertex"], ["==", "$type", "Point"], ["!=", "mode", "static"]],
+    "paint": { "circle-radius": 3, "circle-color": "#4338ca" }
+  },
+  {
+    "id": "gl-draw-point-point-stroke-inactive",
+    "type": "circle",
+    "filter": ["all", ["==", "active", "false"], ["==", "$type", "Point"], ["==", "meta", "feature"], ["!=", "mode", "static"]],
+    "paint": { "circle-radius": 5, "circle-opacity": 1, "circle-color": "#fff" }
+  },
+  {
+    "id": "gl-draw-point-inactive",
+    "type": "circle",
+    "filter": ["all", ["==", "active", "false"], ["==", "$type", "Point"], ["==", "meta", "feature"], ["!=", "mode", "static"]],
+    "paint": { "circle-radius": 3, "circle-color": "#4338ca" }
+  },
+  {
+    "id": "gl-draw-point-stroke-active",
+    "type": "circle",
+    "filter": ["all", ["==", "$type", "Point"], ["==", "active", "true"], ["==", "meta", "feature"]],
+    "paint": { "circle-radius": 7, "circle-color": "#fff" }
+  },
+  {
+    "id": "gl-draw-point-active",
+    "type": "circle",
+    "filter": ["all", ["==", "$type", "Point"], ["==", "active", "true"], ["==", "meta", "feature"]],
+    "paint": { "circle-radius": 5, "circle-color": "#6366f1" }
+  },
+  {
+    "id": "gl-draw-polygon-fill-static",
+    "type": "fill",
+    "filter": ["all", ["==", "mode", "static"], ["==", "$type", "Polygon"]],
+    "paint": { "fill-color": "#404040", "fill-outline-color": "#404040", "fill-opacity": 0.1 }
+  },
+  {
+    "id": "gl-draw-polygon-stroke-static",
+    "type": "line",
+    "filter": ["all", ["==", "mode", "static"], ["==", "$type", "Polygon"]],
+    "layout": { "line-cap": "round", "line-join": "round" },
+    "paint": { "line-color": "#404040", "line-width": 2 }
+  },
+  {
+    "id": "gl-draw-line-static",
+    "type": "line",
+    "filter": ["all", ["==", "mode", "static"], ["==", "$type", "LineString"]],
+    "layout": { "line-cap": "round", "line-join": "round" },
+    "paint": { "line-color": "#404040", "line-width": 2 }
+  },
+  {
+    "id": "gl-draw-point-static",
+    "type": "circle",
+    "filter": ["all", ["==", "mode", "static"], ["==", "$type", "Point"]],
+    "paint": { "circle-radius": 5, "circle-color": "#404040" }
   }
 ];
 
@@ -199,14 +248,12 @@ export default function MapComponent({
       // Add Drawing Tools with custom MapLibre-safe styles
       draw.current = new MapboxDraw({
         displayControlsDefault: false,
-        controls: {
-          polygon: true,
-          trash: true
-        },
-        defaultMode: 'draw_polygon',
+        defaultMode: 'simple_select',
         styles: DRAW_STYLES
       });
-      map.current.addControl(draw.current as any, 'top-right');
+      // We don't add the control container to the map UI to prevent CSS conflicts,
+      // but we still register the tool to process map click events.
+      map.current.addControl(draw.current as any);
 
       map.current.on('draw.create', (e) => onGeofenceUpdate?.(draw.current?.getAll().features || []));
       map.current.on('draw.delete', (e) => onGeofenceUpdate?.(draw.current?.getAll().features || []));
@@ -241,6 +288,36 @@ export default function MapComponent({
   return (
     <div className="relative h-full w-full overflow-hidden rounded-[2.5rem] border border-white/5 bg-black shadow-2xl">
       <div ref={mapContainer} className="h-full w-full" />
+      
+      {/* Custom Drawing Controls to bypass MapboxDraw UI bugs */}
+      <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            draw.current?.changeMode('draw_polygon');
+          }}
+          className="p-3 bg-zinc-900 border border-white/10 rounded-xl text-white shadow-xl hover:bg-indigo-600 transition-colors focus:outline-none"
+          title="Draw Geofence"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2L2 22h20L12 2z" />
+          </svg>
+        </button>
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            draw.current?.trash();
+            const features = draw.current?.getAll().features || [];
+            onGeofenceUpdate?.(features);
+          }}
+          className="p-3 bg-zinc-900 border border-white/10 rounded-xl text-white shadow-xl hover:bg-red-600 transition-colors focus:outline-none"
+          title="Delete Selection"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
