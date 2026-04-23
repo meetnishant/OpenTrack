@@ -21,3 +21,5 @@ build/
 
 # Task tracking
 task.md
+
+/src/generated/prisma
