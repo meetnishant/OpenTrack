@@ -49,9 +49,12 @@ export default function MapComponent({ routeData }: MapComponentProps) {
     try {
       console.log("MapComponent: Initializing with Premium Dark Global Tiles...");
 
-      if (!maplibregl.getProtocol("pmtiles")) {
+      // @ts-ignore
+      if (!window._pmtilesRegistered) {
         const protocol = new Protocol();
         maplibregl.addProtocol("pmtiles", protocol.tile);
+        // @ts-ignore
+        window._pmtilesRegistered = true;
       }
 
       map.current = new maplibregl.Map({
