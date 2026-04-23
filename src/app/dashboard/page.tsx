@@ -8,30 +8,40 @@ import MapComponent from "@/components/MapComponent";
 import { RoutingPanel } from "@/components/RoutingPanel";
 import { VehicleList } from "@/components/VehicleList";
 import { PlaybackPanel } from "@/components/PlaybackPanel";
-import { LogOut, Map as MapIcon, Navigation, Activity, LayoutDashboard, History, Settings } from "lucide-react";
+import { AlertsPanel } from "@/components/AlertsPanel";
+import { LogOut, Map as MapIcon, Navigation, Activity, LayoutDashboard, History, Bell } from "lucide-react";
+import { Vehicle } from "@/types/vehicle";
 import { clsx } from "clsx";
+import * as turf from "@turf/turf";
 
-interface Vehicle {
-  id: string;
-  currentLngLat: [number, number];
-  targetLngLat: [number, number];
-  bearing: number;
-  speed: number;
-  passengers: number;
-}
-
-type Tab = "live" | "history" | "routing";
+type Tab = "live" | "history" | "routing" | "alerts";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState<Tab>("live");
   const [routeData, setRouteData] = useState<any>(null);
   const [historyData, setHistoryData] = useState<any>(null);
+  const [playbackIndex, setPlaybackIndex] = useState(0);
+  
+  // Geofencing & Alerts
+  const [geofences, setGeofences] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const vehicleStates = useRef<{ [key: string]: { [fenceId: string]: boolean } }>({});
+
   const [fleet, setFleet] = useState<{ [key: string]: Vehicle }>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const fleetRef = useRef<{ [key: string]: Vehicle }>({});
 
   if (status === "unauthenticated") redirect("/");
+
+  // Request Notification Permission
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      if (Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
@@ -49,7 +59,7 @@ export default function DashboardPage() {
         }
       }
 
-      fleetRef.current[data.id] = {
+      const updatedVehicle: Vehicle = {
         id: data.id,
         currentLngLat: prev ? prev.currentLngLat : [data.lng, data.lat],
         targetLngLat: [data.lng, data.lat],
@@ -57,6 +67,46 @@ export default function DashboardPage() {
         speed: data.speed,
         passengers: data.passengers
       };
+
+      // Real-time Geofence Check
+      if (geofences.length > 0) {
+        const pt = turf.point([data.lng, data.lat]);
+        geofences.forEach(fence => {
+          const isInside = turf.booleanPointInPolygon(pt, fence);
+          const wasInside = vehicleStates.current[data.id]?.[fence.id] || false;
+
+          if (isInside && !wasInside) {
+            const msg = `${data.id} entered Safety Zone ${fence.id.slice(0, 4)}`;
+            setAlerts(prev => [{
+              vehicleId: data.id,
+              type: "Entry",
+              message: msg,
+              timestamp: new Date()
+            }, ...prev].slice(0, 50));
+
+            if (Notification.permission === "granted") {
+              new Notification("🚧 Geofence Alert", { body: msg, icon: "/favicon.ico" });
+            }
+          } else if (!isInside && wasInside) {
+            const msg = `${data.id} exited Safety Zone ${fence.id.slice(0, 4)}`;
+            setAlerts(prev => [{
+              vehicleId: data.id,
+              type: "Exit",
+              message: msg,
+              timestamp: new Date()
+            }, ...prev].slice(0, 50));
+
+            if (Notification.permission === "granted") {
+              new Notification("🚧 Geofence Alert", { body: msg, icon: "/favicon.ico" });
+            }
+          }
+
+          if (!vehicleStates.current[data.id]) vehicleStates.current[data.id] = {};
+          vehicleStates.current[data.id][fence.id] = isInside;
+        });
+      }
+
+      fleetRef.current[data.id] = updatedVehicle;
       setFleet({ ...fleetRef.current });
     });
 
@@ -81,7 +131,7 @@ export default function DashboardPage() {
       socket.disconnect();
       cancelAnimationFrame(anim);
     };
-  }, []);
+  }, [geofences]);
 
   if (status === "loading") return null;
 
@@ -102,7 +152,8 @@ export default function DashboardPage() {
             {[
               { id: "live", icon: Activity, label: "Live" },
               { id: "history", icon: History, label: "Replay" },
-              { id: "routing", icon: Navigation, label: "Nav" }
+              { id: "routing", icon: Navigation, label: "Nav" },
+              { id: "alerts", icon: Bell, label: "Alert" }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -143,6 +194,7 @@ export default function DashboardPage() {
                 <PlaybackPanel 
                   vehicleId={selectedId} 
                   onHistoryLoaded={(data) => setHistoryData(data)} 
+                  onPlaybackUpdate={(idx) => setPlaybackIndex(idx)}
                 />
               </section>
             )}
@@ -155,6 +207,23 @@ export default function DashboardPage() {
                 <RoutingPanel 
                   onRouteCalculated={(geom) => setRouteData(geom)} 
                   onClear={() => setRouteData(null)} 
+                />
+              </section>
+            )}
+
+            {activeTab === "alerts" && (
+              <section className="animate-in fade-in slide-in-from-left-4 duration-300">
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 mb-4 flex items-center gap-2">
+                  <Bell className="h-3 w-3" /> Safety Monitor
+                </h3>
+                <AlertsPanel 
+                  geofences={geofences} 
+                  alerts={alerts}
+                  onRemoveGeofence={(id) => {
+                    // This is tricky as we need to tell MapComponent to remove it
+                    // For now we'll just filter it out of state and let user delete manually on map
+                    setGeofences(prev => prev.filter(f => f.id !== id));
+                  }}
                 />
               </section>
             )}
@@ -186,8 +255,10 @@ export default function DashboardPage() {
         <MapComponent 
           routeData={routeData} 
           historyData={historyData}
+          playbackIndex={playbackIndex}
           vehicles={fleet} 
           selectedVehicleId={selectedId} 
+          onGeofenceUpdate={(fences) => setGeofences(fences)}
         />
       </main>
     </div>

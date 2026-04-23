@@ -1,23 +1,33 @@
 "use client";
 
-import { useState } from "react";
-import { Play, Pause, RotateCcw, Clock, Calendar, Download, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Play, Pause, RotateCcw, Clock, Calendar, Download, Loader2, FastForward } from "lucide-react";
 
 interface PlaybackPanelProps {
   vehicleId: string | null;
   onHistoryLoaded: (data: any) => void;
+  onPlaybackUpdate: (index: number) => void;
 }
 
-export function PlaybackPanel({ vehicleId, onHistoryLoaded }: PlaybackPanelProps) {
+export function PlaybackPanel({ vehicleId, onHistoryLoaded, onPlaybackUpdate }: PlaybackPanelProps) {
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [history, setHistory] = useState<any>(null);
+  
+  // Playback state
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playSpeed, setPlaySpeed] = useState(1);
 
   const loadHistory = async () => {
     if (!vehicleId || !start || !end) return;
     setLoading(true);
     setError("");
+    setHistory(null);
+    setCurrentIndex(0);
+    setIsPlaying(false);
 
     try {
       const res = await fetch(`/api/v1/history/${vehicleId}?start=${start}&end=${end}`);
@@ -26,12 +36,38 @@ export function PlaybackPanel({ vehicleId, onHistoryLoaded }: PlaybackPanelProps
       if (data.error) throw new Error(data.error);
       if (data.count === 0) throw new Error("No data found for this range.");
 
+      setHistory(data);
       onHistoryLoaded(data);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Playback loop
+  useEffect(() => {
+    let interval: any;
+    if (isPlaying && history && currentIndex < history.count - 1) {
+      interval = setInterval(() => {
+        setCurrentIndex(prev => {
+          const next = prev + 1;
+          onPlaybackUpdate(next);
+          if (next >= history.count - 1) {
+            setIsPlaying(false);
+            return prev;
+          }
+          return next;
+        });
+      }, 100 / playSpeed);
+    }
+    return () => clearInterval(interval);
+  }, [isPlaying, history, currentIndex, playSpeed, onPlaybackUpdate]);
+
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value);
+    setCurrentIndex(val);
+    onPlaybackUpdate(val);
   };
 
   return (
@@ -76,14 +112,75 @@ export function PlaybackPanel({ vehicleId, onHistoryLoaded }: PlaybackPanelProps
             </div>
           )}
 
-          <button
-            onClick={loadHistory}
-            disabled={loading || !start || !end}
-            className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition-all hover:bg-indigo-500 active:scale-95 disabled:opacity-50"
-          >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
-            Load History
-          </button>
+          {!history ? (
+            <button
+              onClick={loadHistory}
+              disabled={loading || !start || !end}
+              className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition-all hover:bg-indigo-500 active:scale-95 disabled:opacity-50"
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+              Load History
+            </button>
+          ) : (
+            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              {/* Playback Controls */}
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setIsPlaying(!isPlaying)}
+                      className="p-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors"
+                    >
+                      {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                    </button>
+                    <button
+                      onClick={() => { setCurrentIndex(0); onPlaybackUpdate(0); setIsPlaying(false); }}
+                      className="p-2 rounded-lg bg-white/5 text-white/60 hover:text-white transition-colors"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </button>
+                  </div>
+                  
+                  <div className="flex bg-white/5 rounded-lg p-1">
+                    {[1, 5, 10].map(speed => (
+                      <button
+                        key={speed}
+                        onClick={() => setPlaySpeed(speed)}
+                        className={`px-2 py-1 text-[9px] font-bold rounded ${playSpeed === speed ? 'bg-zinc-700 text-white' : 'text-white/30'}`}
+                      >
+                        {speed}x
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <input
+                  type="range"
+                  min="0"
+                  max={history.count - 1}
+                  value={currentIndex}
+                  onChange={handleSliderChange}
+                  className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                />
+
+                <div className="flex justify-between mt-2">
+                  <span className="text-[10px] text-white/30 font-mono">
+                    {new Date(history.path.properties.points[currentIndex].timestamp).toLocaleTimeString()}
+                  </span>
+                  <span className="text-[10px] text-indigo-400 font-bold">
+                    {Math.round(history.path.properties.points[currentIndex].speed || 0)} km/h
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setHistory(null)}
+                className="w-full py-2 text-[10px] font-bold uppercase tracking-widest text-white/20 hover:text-white/40 transition-colors"
+              >
+                Clear History
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>

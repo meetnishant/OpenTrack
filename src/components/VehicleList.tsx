@@ -4,12 +4,7 @@ import { useState } from "react";
 import { Search, Bus, Info, ChevronRight, Activity } from "lucide-react";
 import { clsx } from "clsx";
 
-interface Vehicle {
-  id: string;
-  speed: number;
-  passengers: number;
-  status: string;
-}
+import { Vehicle } from "@/types/vehicle";
 
 interface VehicleListProps {
   vehicles: Vehicle[];
