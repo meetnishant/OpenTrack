@@ -11,15 +11,30 @@ const io = new Server(server, {
 });
 
 // Redis setup
-const redis = createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
-});
+const useRedis = !!process.env.REDIS_URL;
+let redis = null;
 
-redis.on('error', (err) => console.error('Redis Error', err));
+if (useRedis) {
+  redis = createClient({
+    url: process.env.REDIS_URL
+  });
+  redis.on('error', (err) => console.error('Redis Error', err));
+}
+
+let redisEnabled = false;
 
 async function start() {
-  await redis.connect();
-  console.log('📦 Connected to Redis Cache');
+  if (useRedis) {
+    try {
+      await redis.connect();
+      console.log('📦 Connected to Redis Cache');
+      redisEnabled = true;
+    } catch (err) {
+      console.warn('⚠️ Could not connect to Redis. Running without cache.');
+    }
+  } else {
+    console.warn('⚠️ REDIS_URL not set. Running without cache.');
+  }
 
   io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
@@ -29,14 +44,15 @@ async function start() {
       io.emit('v_upd', data);
 
       // 2. Cache in Redis (Hash per vehicle)
-      // We store the whole payload as a JSON string for simplicity
-      try {
-        await redis.hSet('fleet_snapshot', data.id, JSON.stringify({
-          ...data,
-          lastUpdate: new Date().toISOString()
-        }));
-      } catch (err) {
-        console.error('Redis Cache Fail:', err);
+      if (redisEnabled) {
+        try {
+          await redis.hSet('fleet_snapshot', data.id, JSON.stringify({
+            ...data,
+            lastUpdate: new Date().toISOString()
+          }));
+        } catch (err) {
+          console.error('Redis Cache Fail:', err);
+        }
       }
     });
 
