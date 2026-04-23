@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -24,6 +24,12 @@ export default function MapComponent({ routeData, vehicles, selectedVehicleId }:
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const animationFrame = useRef<number>();
+  const vehiclesRef = useRef<{ [key: string]: Vehicle }>(vehicles);
+
+  // Keep ref in sync with props
+  useEffect(() => {
+    vehiclesRef.current = vehicles;
+  }, [vehicles]);
 
   // Center on selected vehicle
   useEffect(() => {
@@ -31,47 +37,31 @@ export default function MapComponent({ routeData, vehicles, selectedVehicleId }:
       const v = vehicles[selectedVehicleId];
       map.current.flyTo({
         center: v.currentLngLat,
-        zoom: 16,
+        zoom: 17,
         essential: true,
-        duration: 2000
+        duration: 1000
       });
     }
   }, [selectedVehicleId]);
 
-  // Sync route data
-  useEffect(() => {
-    if (map.current && routeData) {
-      const source = map.current.getSource("route") as maplibregl.GeoJSONSource;
-      if (source) {
-        source.setData({ type: "Feature", geometry: routeData, properties: {} });
-        const bounds = routeData.coordinates.reduce((acc: any, coord: any) => acc.extend(coord), new maplibregl.LngLatBounds(routeData.coordinates[0], routeData.coordinates[0]));
-        map.current.fitBounds(bounds, { padding: 120, duration: 1500 });
-      }
-    } else if (map.current && !routeData) {
-      const source = map.current.getSource("route") as maplibregl.GeoJSONSource;
-      if (source) source.setData({ type: "FeatureCollection", features: [] });
-    }
-  }, [routeData]);
-
   // Animation Loop
   const animate = () => {
-    const features: any[] = [];
-    const lerpFactor = 0.05;
+    if (!map.current) return;
 
-    Object.values(vehicles).forEach((v) => {
-      // Interpolation logic moved here (assuming vehicles prop is updated via ref or state)
-      // Since this is a prop, we need to be careful with refs if we want true 60fps independent of React renders
-      // For now, we'll render what we have.
-      features.push({
-        type: "Feature",
-        properties: { id: v.id, bearing: v.bearing, speed: v.speed, passengers: v.passengers },
-        geometry: { type: "Point", coordinates: v.currentLngLat }
-      });
-    });
+    const features = Object.values(vehiclesRef.current).map((v) => ({
+      type: "Feature",
+      properties: { 
+        id: v.id, 
+        bearing: v.bearing, 
+        speed: v.speed, 
+        passengers: v.passengers 
+      },
+      geometry: { type: "Point", coordinates: v.currentLngLat }
+    }));
 
-    if (map.current) {
-      const source = map.current.getSource("vehicles") as maplibregl.GeoJSONSource;
-      if (source) source.setData({ type: "FeatureCollection", features });
+    const source = map.current.getSource("vehicles") as maplibregl.GeoJSONSource;
+    if (source) {
+      source.setData({ type: "FeatureCollection", features });
     }
 
     animationFrame.current = requestAnimationFrame(animate);
@@ -102,9 +92,48 @@ export default function MapComponent({ routeData, vehicles, selectedVehicleId }:
           },
           layers: [
             { id: "global-base", type: "raster", source: "carto" },
+            // Vector layers from pmtiles
+            { id: "water", type: "fill", source: "protomaps", "source-layer": "water", paint: { "fill-color": "#1e1b4b" } },
+            { id: "buildings", type: "fill", source: "protomaps", "source-layer": "buildings", paint: { "fill-color": "#312e81", "fill-opacity": 0.5 } },
+            { id: "roads", type: "line", source: "protomaps", "source-layer": "roads", paint: { "line-color": "#4338ca", "line-width": 1 } },
+            
             { id: "route-line", type: "line", source: "route", layout: { "line-join": "round", "line-cap": "round" }, paint: { "line-color": "#6366f1", "line-width": 6, "line-opacity": 0.8 } },
-            { id: "vehicle-marker", type: "symbol", source: "vehicles", layout: { "icon-image": "triangle", "icon-size": 1, "icon-rotate": ["get", "bearing"], "icon-rotation-alignment": "map", "icon-allow-overlap": true, "text-field": ["get", "id"], "text-font": ["Open Sans Regular"], "text-size": 11, "text-offset": [0, 1.8], "text-anchor": "top" }, paint: { "icon-color": "#facc15", "text-color": "#fff", "text-halo-color": "#000", "text-halo-width": 1.5 } },
-            { id: "vehicle-dot", type: "circle", source: "vehicles", paint: { "circle-radius": 4, "circle-color": "#facc15", "circle-stroke-width": 2, "circle-stroke-color": "#000" } }
+            
+            // Vehicles
+            {
+              id: "vehicle-marker",
+              type: "symbol",
+              source: "vehicles",
+              layout: {
+                "icon-image": "triangle",
+                "icon-size": 0.8,
+                "icon-rotate": ["get", "bearing"],
+                "icon-rotation-alignment": "map",
+                "icon-allow-overlap": true,
+                "text-field": ["get", "id"],
+                "text-font": ["Open Sans Regular"],
+                "text-size": 11,
+                "text-offset": [0, 1.8],
+                "text-anchor": "top"
+              },
+              paint: {
+                "icon-color": "#facc15",
+                "text-color": "#fff",
+                "text-halo-color": "#000",
+                "text-halo-width": 1.5
+              }
+            },
+            {
+              id: "vehicle-dot",
+              type: "circle",
+              source: "vehicles",
+              paint: {
+                "circle-radius": 5,
+                "circle-color": "#facc15",
+                "circle-stroke-width": 2,
+                "circle-stroke-color": "#000"
+              }
+            }
           ],
           center: [11.254, 43.767],
           zoom: 13
@@ -112,12 +141,20 @@ export default function MapComponent({ routeData, vehicles, selectedVehicleId }:
       });
 
       map.current.on("load", () => {
+        // Create a proper triangle icon
         const canvas = document.createElement('canvas');
-        canvas.width = 24; canvas.height = 24;
+        canvas.width = 32; canvas.height = 32;
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(24, 24); ctx.lineTo(0, 24); ctx.closePath(); ctx.fill();
-          map.current?.addImage('triangle', ctx.getImageData(0, 0, 24, 24));
+          ctx.fillStyle = '#facc15';
+          ctx.beginPath();
+          ctx.moveTo(16, 0); // Tip
+          ctx.lineTo(32, 32); // Right base
+          ctx.lineTo(16, 26); // Inward notch
+          ctx.lineTo(0, 32); // Left base
+          ctx.closePath();
+          ctx.fill();
+          map.current?.addImage('triangle', ctx.getImageData(0, 0, 32, 32), { sdf: false });
         }
         animate();
       });
