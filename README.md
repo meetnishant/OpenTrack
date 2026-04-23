@@ -1,34 +1,47 @@
-# OpenTrack 🌍
+# OpenTrack: Professional Fleet Intelligence
 
-**OpenTrack** is a high-performance, open-source GPS tracking platform designed for individual developers and commercial fleet operators. It solves the "Mapping Tax" by leveraging the **MapLibre + Protomaps** stack, allowing for total data sovereignty and zero-cost map hosting.
+A high-performance, real-time fleet tracking and management platform built with Next.js, MapLibre, and PostGIS.
 
-## 🚀 The Mission
-To provide a commercial-grade tracking infrastructure that is:
-1.  **Zero-Cost to Host**: Uses self-hosted vector tiles (PMTiles) instead of expensive Mapbox/Google APIs.
-2.  **Hardware Agnostic**: Designed to receive data from custom IoT devices, mobile apps, or hardware trackers.
-3.  **Real-Time Ready**: Built with WebSockets to handle thousands of moving assets at 60FPS.
-4.  **Developer-First**: A clean, robust API for commercial integrations and fleet analytics.
+## 🚀 Key Features
+- **60FPS Real-time Gliding**: Smooth vehicle movement using interpolation.
+- **Navigator Engine**: Global routing (OSRM) and geocoding (Nominatim/Photon) with autocomplete.
+- **Data Vault**: High-frequency GPS ingestion via PostGIS-enabled PostgreSQL.
+- **Commercial Security**: Secured Ingestion API with X-API-Key validation.
+- **Dark-Mode Aesthetic**: Premium Glassmorphism UI with high-fidelity dark matter maps.
 
-## 🛠 Tech Stack
+## 🛠️ Tech Stack
+- **Frontend**: Next.js 15, Tailwind CSS, Lucide Icons.
+- **Mapping**: MapLibre GL JS, PMTiles (Zero Mapping Cost), CartoDB Dark Matter.
+- **Backend**: Next.js API Routes, Prisma ORM, Socket.io.
+- **Database**: PostgreSQL + PostGIS (Docker).
 
-| Layer | Technology | Why? |
-| :--- | :--- | :--- |
-| **Map Rendering** | [MapLibre GL JS](https://maplibre.org/) | GPU-accelerated WebGL rendering for smooth vehicle motion. |
-| **Map Data** | [Protomaps (PMTiles)](https://protomaps.com/) | Self-hosted vector maps based on OpenStreetMap. |
-| **Frontend** | [Next.js](https://nextjs.org/) + Tailwind | Modern, responsive, and SEO-friendly dashboard. |
-| **Database** | [PostgreSQL](https://www.postgresql.org/) + [PostGIS](https://postgis.net/) | Industry-standard for geospatial queries and indexing. |
-| **Interchange** | [WebSockets](https://socket.io/) / MQTT | Low-latency updates (<100ms) from vehicle to map. |
+## 🚦 Getting Started
 
-## 📦 Getting Started
-
-First, run the development server:
-
+### 1. Database Setup
 ```bash
-npm run dev
+docker-compose up -d
+cp .env.local .env
+npx prisma db push
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Run the Environment
+```bash
+npm run dev           # Next.js Dashboard
+npm run live:server   # WebSocket Engine
+npm run live:mock     # Vehicle Simulator
+```
+
+## 🛰️ Commercial API
+Integrate your fleet using our secured ingestion endpoint:
+- **Endpoint**: `POST /api/v1/track`
+- **Header**: `x-api-key: <YOUR_KEY>`
+- **Docs**: See [API Tracking Guide](docs/api-guide.md)
+
+## 🧪 Testing (TDD)
+We maintain high stability through automated testing:
+- **Unit Tests**: `npm test` (Vitest)
+- **E2E Tests**: `npx playwright test` (Auth, Routing, Fleet Filtering)
 
 ---
 
-*OpenTrack is currently in the Implementation phase.*
+Developed with ❤️ for OpenSource Logistics.

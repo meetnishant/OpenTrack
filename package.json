@@ -2,11 +2,13 @@
   "name": "testapp",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
     "live:server": "node live-server/index.js",
     "live:mock": "node live-server/mock-generator.js"
   },
