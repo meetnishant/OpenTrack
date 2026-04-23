@@ -5,7 +5,7 @@ const socket = io('http://localhost:3001');
 const VEHICLE_COUNT = 50; 
 const vehicles = [];
 
-// Prayagraj coordinates: [81.8463, 25.4358]
+// Default Demo coordinates: [81.8463, 25.4358]
 function initVehicles() {
   for (let i = 0; i < VEHICLE_COUNT; i++) {
     vehicles.push({
@@ -32,7 +32,7 @@ function updatePositions() {
 }
 
 socket.on('connect', () => {
-  console.log('Connected to Live Engine. Spawning fleet in Prayagraj...');
+  console.log('Connected to Live Engine. Spawning demo fleet...');
   initVehicles();
   setInterval(updatePositions, 2000);
 });

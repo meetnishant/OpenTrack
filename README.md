@@ -5,7 +5,7 @@
 [![Redis](https://img.shields.io/badge/Redis-Caching-red?style=for-the-badge&logo=redis)](https://redis.io)
 [![PostGIS](https://img.shields.io/badge/PostGIS-Spatial-blue?style=for-the-badge&logo=postgresql)](https://postgis.net)
 
-**OpenTrack** is a high-performance, open-source fleet management platform designed for the complex urban landscape of **Prayagraj, India**. Built with a focus on zero-latency tracking and developer-first extensibility, it transforms raw GPS telemetry into actionable business intelligence.
+**OpenTrack** is a high-performance, open-source fleet management platform designed for the complex urban landscape of modern global logistics. Built with a focus on zero-latency tracking and developer-first extensibility, it transforms raw GPS telemetry into actionable business intelligence.
 
 ---
 
@@ -13,7 +13,7 @@
 
 ### Live Fleet Dashboard
 ![OpenTrack Live Dashboard](file:///Users/meetnishant/.gemini/antigravity/brain/293e5c78-5953-4212-b58d-803e5a442e76/dashboard_live_1776933787554.png)
-*Real-time vehicle movement and fleet telemetry in Prayagraj.*
+*Real-time vehicle movement and fleet telemetry.*
 
 ---
 
@@ -82,4 +82,4 @@ Access the ecosystem:
 
 ---
 
-**Built with ❤️ for the future of logistics in Prayagraj.**
+**Built with ❤️ for the future of logistics.**

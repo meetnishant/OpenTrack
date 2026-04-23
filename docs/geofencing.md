@@ -1,6 +1,6 @@
 # OpenTrack Geofencing & Alerts
 
-The Geofencing system provides automated perimeter security for your fleet, enabling real-time detection of boundary violations in Prayagraj.
+The Geofencing system provides automated perimeter security for your fleet, enabling real-time detection of boundary violations in your service area.
 
 ## 📐 Creating Safety Zones
 1.  **Select the Polygon Tool**: Click the polygon icon in the top-right corner of the map.

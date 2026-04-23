@@ -10,7 +10,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (credentials?.username === "fleet_admin" && credentials?.password === "OT-Admin#2024!Prayagraj") {
+        if (credentials?.username === "fleet_admin" && credentials?.password === "OT-Admin#2024!Global") {
           return { id: "admin", name: "Fleet Admin", email: "admin@opentrack.com" };
         }
         if (credentials?.username === "demo" && credentials?.password === "Secrte#123") {
