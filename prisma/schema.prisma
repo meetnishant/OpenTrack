@@ -10,13 +10,17 @@ datasource db {
 }
 
 model Vehicle {
-  id          String   @id
-  name        String?
-  type        String?
-  status      String   @default("active")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  locations   Location[]
+  id           String   @id
+  name         String?
+  type         String?
+  model        String?
+  licensePlate String?
+  driverName   String?
+  capacity     Int?
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  locations    Location[]
 }
 
 model Location {
@@ -31,4 +35,25 @@ model Location {
   timestamp   DateTime @default(now())
 
   @@index([vehicleId, timestamp])
+}
+
+model Analytics {
+  id            Int      @id @default(autoincrement())
+  vehicleId     String
+  date          DateTime
+  totalDistance Float    // in km
+  idleTimeMinutes Int
+  avgSpeed      Float
+  violationCount Int     @default(0)
+  createdAt     DateTime @default(now())
+
+  @@unique([vehicleId, date])
+}
+
+model Webhook {
+  id        Int      @id @default(autoincrement())
+  url       String
+  events    String[] // e.g. ["geofence.entry", "geofence.exit"]
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
 }

@@ -1,47 +1,77 @@
-# OpenTrack: Professional Fleet Intelligence
+# 🗺️ OpenTrack: Enterprise Fleet Intelligence
 
-A high-performance, real-time fleet tracking and management platform built with Next.js, MapLibre, and PostGIS.
+[![Next.js](https://img.shields.io/badge/Next.js-15+-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
+[![MapLibre](https://img.shields.io/badge/MapLibre-GL--JS-blue?style=for-the-badge&logo=maplibre)](https://maplibre.org)
+[![Redis](https://img.shields.io/badge/Redis-Caching-red?style=for-the-badge&logo=redis)](https://redis.io)
+[![PostGIS](https://img.shields.io/badge/PostGIS-Spatial-blue?style=for-the-badge&logo=postgresql)](https://postgis.net)
 
-## 🚀 Key Features
-- **60FPS Real-time Gliding**: Smooth vehicle movement using interpolation.
-- **Navigator Engine**: Global routing (OSRM) and geocoding (Nominatim/Photon) with autocomplete.
-- **Data Vault**: High-frequency GPS ingestion via PostGIS-enabled PostgreSQL.
-- **Commercial Security**: Secured Ingestion API with X-API-Key validation.
-- **Dark-Mode Aesthetic**: Premium Glassmorphism UI with high-fidelity dark matter maps.
-
-## 🛠️ Tech Stack
-- **Frontend**: Next.js 15, Tailwind CSS, Lucide Icons.
-- **Mapping**: MapLibre GL JS, PMTiles (Zero Mapping Cost), CartoDB Dark Matter.
-- **Backend**: Next.js API Routes, Prisma ORM, Socket.io.
-- **Database**: PostgreSQL + PostGIS (Docker).
-
-## 🚦 Getting Started
-
-### 1. Database Setup
-```bash
-docker-compose up -d
-cp .env.local .env
-npx prisma db push
-```
-
-### 2. Run the Environment
-```bash
-npm run dev           # Next.js Dashboard
-npm run live:server   # WebSocket Engine
-npm run live:mock     # Vehicle Simulator
-```
-
-## 🛰️ Commercial API
-Integrate your fleet using our secured ingestion endpoint:
-- **Endpoint**: `POST /api/v1/track`
-- **Header**: `x-api-key: <YOUR_KEY>`
-- **Docs**: See [API Tracking Guide](docs/api-guide.md)
-
-## 🧪 Testing (TDD)
-We maintain high stability through automated testing:
-- **Unit Tests**: `npm test` (Vitest)
-- **E2E Tests**: `npx playwright test` (Auth, Routing, Fleet Filtering)
+**OpenTrack** is a high-performance, open-source fleet management platform designed for the complex urban landscape of **Prayagraj, India**. Built with a focus on zero-latency tracking and developer-first extensibility, it transforms raw GPS telemetry into actionable business intelligence.
 
 ---
 
-Developed with ❤️ for OpenSource Logistics.
+## 🚀 Key Features
+
+### 📡 Real-time Telemetry (60 FPS)
+Experience butter-smooth vehicle movement. Using advanced interpolation and MapLibre GL JS, markers glide across the map with zero stutter, even under high network latency.
+
+### 🕰️ The Time Machine (Historical Replay)
+Scrub through any vehicle's history with precision. Our high-speed PostGIS backend retrieves months of data in milliseconds, rendered with synchronized "Ghost Markers" for deep incident analysis.
+
+### 🛡️ The Watchman (Geofencing)
+Draw complex safety zones directly on the map. Our client-side spatial engine (Turf.js) detects entry/exit events instantly, triggering native browser notifications and external webhooks.
+
+### 🔌 API-First Engine
+A full-featured developer portal providing REST access to every core system:
+*   **Routing**: OSRM-powered pathfinding.
+*   **Analytics**: Daily distance and idle-time aggregation.
+*   **Webhooks**: Real-time event streaming to your own backend.
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+graph TD
+    A[GPS Devices] -->|POST /api/v1/track| B(Next.js API)
+    B -->|Persist| C[(PostGIS DB)]
+    B -->|Broadcast| D[Node.js Live Engine]
+    D -->|Cache| E[(Redis Snapshot)]
+    D -->|Stream| F[Dashboard UI]
+    F -->|Draw| G[MapLibre / PMTiles]
+```
+
+---
+
+## 🛠️ Quick Start (Production)
+
+Deploy the entire stack in seconds using Docker:
+
+```bash
+docker-compose up --build
+```
+
+Access the ecosystem:
+*   **Dashboard**: `http://localhost:3000/dashboard`
+*   **Developer Portal**: `http://localhost:3000/developer`
+*   **Live Engine**: `http://localhost:3001`
+
+---
+
+## 👨‍💻 Tech Stack
+*   **Frontend**: Next.js 15, Tailwind CSS, MapLibre GL JS.
+*   **Mapping**: Protomaps (PMTiles) for offline-capable, cost-free vector tiles.
+*   **Backend**: Node.js, Prisma ORM, Socket.io.
+*   **Data**: PostgreSQL + PostGIS (Geospatial), Redis (High-speed Cache).
+*   **Analysis**: Turf.js (Spatial Analysis).
+
+---
+
+## 📜 Documentation
+*   [API Reference](docs/api-guide.md)
+*   [Geofencing Guide](docs/geofencing.md)
+*   [Authentication](docs/authentication.md)
+*   [Setup Maps](docs/setup-maps.md)
+
+---
+
+**Built with ❤️ for the future of logistics in Prayagraj.**

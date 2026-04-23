@@ -18,6 +18,68 @@ interface MapComponentProps {
   onGeofenceUpdate?: (geofences: any[]) => void;
 }
 
+// MapLibre compatible styles for gl-draw
+const DRAW_STYLES = [
+  {
+    'id': 'gl-draw-polygon-fill-inactive',
+    'type': 'fill',
+    'filter': ['all', ['==', 'active', 'false'], ['==', '$type', 'Polygon'], ['!=', 'mode', 'static']],
+    'paint': {
+      'fill-color': '#4338ca',
+      'fill-outline-color': '#4338ca',
+      'fill-opacity': 0.1
+    }
+  },
+  {
+    'id': 'gl-draw-polygon-fill-active',
+    'type': 'fill',
+    'filter': ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon']],
+    'paint': {
+      'fill-color': '#6366f1',
+      'fill-outline-color': '#6366f1',
+      'fill-opacity': 0.2
+    }
+  },
+  {
+    'id': 'gl-draw-line-inactive',
+    'type': 'line',
+    'filter': ['all', ['==', 'active', 'false'], ['==', '$type', 'LineString'], ['!=', 'mode', 'static']],
+    'layout': { 'line-cap': 'round', 'line-join': 'round' },
+    'paint': { 'line-color': '#4338ca', 'line-width': 2 }
+  },
+  {
+    'id': 'gl-draw-line-active',
+    'type': 'line',
+    'filter': ['all', ['==', 'active', 'true'], ['==', '$type', 'LineString']],
+    'layout': { 'line-cap': 'round', 'line-join': 'round' },
+    'paint': { 'line-color': '#6366f1', 'line-dasharray': ['literal', [2, 2]], 'line-width': 2 }
+  },
+  {
+    'id': 'gl-draw-polygon-and-line-vertex-stroke-inactive',
+    'type': 'circle',
+    'filter': ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point'], ['!=', 'mode', 'static']],
+    'paint': { 'circle-radius': 5, 'circle-color': '#fff' }
+  },
+  {
+    'id': 'gl-draw-polygon-and-line-vertex-inactive',
+    'type': 'circle',
+    'filter': ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point'], ['!=', 'mode', 'static']],
+    'paint': { 'circle-radius': 3, 'circle-color': '#4338ca' }
+  },
+  {
+    'id': 'gl-draw-point-inactive',
+    'type': 'circle',
+    'filter': ['all', ['==', 'active', 'false'], ['==', '$type', 'Point'], ['!=', 'mode', 'static']],
+    'paint': { 'circle-radius': 5, 'circle-color': '#4338ca' }
+  },
+  {
+    'id': 'gl-draw-point-active',
+    'type': 'circle',
+    'filter': ['all', ['==', 'active', 'true'], ['==', '$type', 'Point']],
+    'paint': { 'circle-radius': 7, 'circle-color': '#6366f1' }
+  }
+];
+
 export default function MapComponent({ 
   routeData, 
   historyData, 
@@ -134,14 +196,15 @@ export default function MapComponent({
         }
       });
 
-      // Add Drawing Tools
+      // Add Drawing Tools with custom MapLibre-safe styles
       draw.current = new MapboxDraw({
         displayControlsDefault: false,
         controls: {
           polygon: true,
           trash: true
         },
-        defaultMode: 'draw_polygon'
+        defaultMode: 'draw_polygon',
+        styles: DRAW_STYLES
       });
       map.current.addControl(draw.current as any, 'top-right');
 

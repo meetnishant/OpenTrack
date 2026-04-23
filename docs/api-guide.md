@@ -1,57 +1,69 @@
-# OpenTrack Tracking API Guide
+# 🔌 OpenTrack API Engine v1.0
 
-The OpenTrack platform provides a high-frequency ingestion API designed for GPS hardware, mobile apps, and commercial fleet integrators.
-
-## Endpoint: Ingest Tracking Data
-**`POST /api/v1/track`**
-
-### Security
-All requests must include a valid API Key in the headers.
-*   **Header Name**: `x-api-key`
-*   **Default Key**: `opentrack_secret_key_2024` (Configurable in `.env.local`)
+OpenTrack is an **API-First** fleet intelligence engine. This guide provides technical specifications for integrating our real-time telemetry, spatial analysis, and historical data into your enterprise applications.
 
 ---
 
-### Request Format (JSON)
-```json
-{
-  "id": "BUS-102",
-  "lat": 43.767,
-  "lng": 11.254,
-  "speed": 45.5,
-  "passengers": 12,
-  "heading": 185.0
-}
-```
+## 🔑 Authentication & Security
 
-### Field Definitions
+### Demo Mode
+In development, authentication is handled via session cookies. Ensure your client supports cookie persistence.
+
+### Production (API Keys)
+Requests must include the `X-API-KEY` header.
+> [!IMPORTANT]
+> Keep your API keys secure. If compromised, rotate them immediately in the Developer Settings.
+
+---
+
+## 📡 Live Telemetry
+
+### 🛰️ Ingest GPS Data
+`POST /api/v1/track`
+The primary endpoint for hardware devices and mobile apps.
+
+**Payload Specification:**
 | Field | Type | Required | Description |
 | :--- | :--- | :--- | :--- |
-| `id` | `string` | Yes | Unique identifier for the vehicle. |
-| `lat` | `float` | Yes | WGS84 Latitude. |
-| `lng` | `float` | Yes | WGS84 Longitude. |
-| `speed` | `float` | No | Current speed in km/h. |
-| `passengers` | `int` | No | Current occupancy count. |
-| `heading` | `float` | No | Compass heading in degrees. |
+| `vehicleId` | String | Yes | Unique ID (e.g., VIN or License Plate) |
+| `lat` | Float | Yes | Latitude (-90 to 90) |
+| `lng` | Float | Yes | Longitude (-180 to 180) |
+| `speed` | Float | No | Speed in km/h |
+| `heading` | Float | No | 0-360 degrees |
 
-### Example `curl` Request (Authorized)
-```bash
-curl -X POST http://localhost:3000/api/v1/track \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: opentrack_secret_key_2024" \
-  -d '{
-    "id": "COMMERCIAL-01",
-    "lat": 28.4125,
-    "lng": 77.0400,
-    "speed": 60,
-    "passengers": 5,
-    "heading": 90
-  }'
-```
+### ❄️ Fleet Snapshot (Redis)
+`GET /api/v1/fleet`
+Returns a high-speed JSON snapshot of the entire fleet. Powered by **Redis**, this endpoint typically responds in <1ms.
 
-### Error Responses
-| Status | Code | Description |
-| :--- | :--- | :--- |
-| `401` | `Unauthorized` | Missing or invalid `x-api-key` header. |
-| `400` | `Bad Request` | Missing required fields (`id`, `lat`, `lng`). |
-| `500` | `Internal Error` | Database or connection failure. |
+---
+
+## 🕰️ Historical Analysis
+
+### 🎞️ Time-Series Playback
+`GET /api/v1/history/[id]`
+Retrieves a GeoJSON LineString of a vehicle's path.
+
+**Sample Request:**
+`GET /api/v1/history/V-101?days=7`
+
+---
+
+## 🏗️ Enterprise Hub
+
+### 🪝 Real-time Webhooks
+OpenTrack can push events directly to your backend.
+*   `geofence.entry`: Triggered when a unit enters a restricted zone.
+*   `geofence.exit`: Triggered when a unit leaves a zone.
+*   `speeding.alert`: (Story 10) Triggered for dangerous driving.
+
+### 📋 Asset Management
+Manage vehicle metadata (Drivers, Models, License Plates) via `v1/assets`.
+
+---
+
+## 👨‍💻 Developer Portal
+For interactive code examples and live testing, access the portal:
+`http://localhost:3000/developer`
+
+> [!TIP]
+> Use our **NPM SDK** (coming soon) for faster integration in Node.js environments.

@@ -9,10 +9,11 @@ import { RoutingPanel } from "@/components/RoutingPanel";
 import { VehicleList } from "@/components/VehicleList";
 import { PlaybackPanel } from "@/components/PlaybackPanel";
 import { AlertsPanel } from "@/components/AlertsPanel";
-import { LogOut, Map as MapIcon, Navigation, Activity, LayoutDashboard, History, Bell } from "lucide-react";
+import { LogOut, Map as MapIcon, Navigation, Activity, LayoutDashboard, History, Bell, Code, ChevronRight } from "lucide-react";
 import { Vehicle } from "@/types/vehicle";
 import { clsx } from "clsx";
 import * as turf from "@turf/turf";
+import Link from "next/link";
 
 type Tab = "live" | "history" | "routing" | "alerts";
 
@@ -219,34 +220,46 @@ export default function DashboardPage() {
                 <AlertsPanel 
                   geofences={geofences} 
                   alerts={alerts}
-                  onRemoveGeofence={(id) => {
-                    // This is tricky as we need to tell MapComponent to remove it
-                    // For now we'll just filter it out of state and let user delete manually on map
-                    setGeofences(prev => prev.filter(f => f.id !== id));
-                  }}
+                  onRemoveGeofence={(id) => setGeofences(prev => prev.filter(f => f.id !== id))}
                 />
               </section>
             )}
           </div>
         </div>
 
-        <div className="mt-auto p-6 border-t border-white/5 bg-zinc-950/50 backdrop-blur-md">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-sm font-bold shadow-lg">
-              {session?.user?.name?.[0]}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold truncate">{session?.user?.name}</p>
-              <p className="text-[10px] text-white/30 font-medium uppercase tracking-wider">Fleet Admin</p>
-            </div>
-          </div>
-          <button
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-white/5 border border-white/10 py-3 text-xs font-bold hover:bg-white/10 transition-all text-white/60 hover:text-white"
+        <div className="mt-auto p-6 space-y-4">
+          {/* Developer Portal Link */}
+          <Link 
+            href="/developer"
+            className="flex items-center justify-between p-3 rounded-xl bg-indigo-500/5 border border-indigo-500/10 hover:bg-indigo-500/10 transition-all group"
           >
-            <LogOut className="h-3 w-3" />
-            Sign Out
-          </button>
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-indigo-500/20 rounded-lg">
+                <Code className="h-3.5 w-3.5 text-indigo-400" />
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-white/60 group-hover:text-white transition-colors">Developer Portal</span>
+            </div>
+            <ChevronRight className="h-3 w-3 text-white/20 group-hover:text-white transition-colors" />
+          </Link>
+
+          <div className="p-6 border-t border-white/5 bg-zinc-950/50 backdrop-blur-md rounded-2xl">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-sm font-bold shadow-lg">
+                {session?.user?.name?.[0]}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold truncate">{session?.user?.name}</p>
+                <p className="text-[10px] text-white/30 font-medium uppercase tracking-wider">Fleet Admin</p>
+              </div>
+            </div>
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-white/5 border border-white/10 py-3 text-xs font-bold hover:bg-white/10 transition-all text-white/60 hover:text-white"
+            >
+              <LogOut className="h-3 w-3" />
+              Sign Out
+            </button>
+          </div>
         </div>
       </aside>
 
