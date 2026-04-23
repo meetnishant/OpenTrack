@@ -15,10 +15,17 @@ export function RoutingPanel({ onRouteCalculated, onClear }: RoutingPanelProps) 
   const [error, setError] = useState("");
 
   const geocode = async (query: string) => {
-    const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1`);
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
+      {
+        headers: {
+          'User-Agent': 'OpenTrack-Fleet-Console/1.0',
+        }
+      }
+    );
     const data = await res.json();
-    if (data.features && data.features.length > 0) {
-      return data.features[0].geometry.coordinates;
+    if (data && data.length > 0) {
+      return [parseFloat(data[0].lon), parseFloat(data[0].lat)];
     }
     throw new Error(`Location not found: ${query}`);
   };
