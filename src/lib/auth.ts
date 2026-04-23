@@ -1,15 +1,24 @@
 import { NextAuthOptions } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    CredentialsProvider({
+      name: "Demo Account",
+      credentials: {
+        username: { label: "Username", type: "text", placeholder: "demo" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (credentials?.username === "demo" && credentials?.password === "Secrte#123") {
+          return { id: "1", name: "Demo User", email: "demo@opentrack.com" };
+        }
+        return null;
+      }
     }),
   ],
   pages: {
-    signIn: "/login",
+    signIn: "/", // We'll put the login on the landing page for now
   },
   callbacks: {
     async session({ session, token }) {
