@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { redirect } from "next/navigation";
+import MapComponent from "@/components/MapComponent";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -20,24 +21,25 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-black p-8 text-white">
-      <div className="mx-auto max-w-4xl">
-        <header className="flex items-center justify-between border-b border-white/10 pb-8">
+      <div className="mx-auto max-w-7xl h-[calc(100vh-64px)] flex flex-col">
+        <header className="flex items-center justify-between border-b border-white/10 pb-6 mb-6">
           <div>
-            <h1 className="text-4xl font-bold">Fleet Dashboard</h1>
-            <p className="mt-2 text-white/50">Welcome back, {session?.user?.name}</p>
+            <h1 className="text-3xl font-bold font-outfit">OpenTrack Console</h1>
+            <p className="mt-1 text-sm text-white/40">Fleet Overview • Monaco Test Area</p>
           </div>
-          <button
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="rounded-full bg-white/5 px-6 py-2 text-sm font-medium transition-colors hover:bg-white/10"
-          >
-            Sign out
-          </button>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-white/30">{session?.user?.name}</span>
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="rounded-full bg-white/5 px-6 py-2 text-xs font-semibold transition-colors hover:bg-white/10"
+            >
+              Sign out
+            </button>
+          </div>
         </header>
 
-        <main className="mt-12">
-          <div className="rounded-3xl border border-dashed border-white/20 p-24 text-center">
-            <p className="text-white/40 italic">Map System Offline - Implementation starting in Story 1</p>
-          </div>
+        <main className="flex-1 relative">
+          <MapComponent />
         </main>
       </div>
     </div>
