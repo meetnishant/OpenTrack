@@ -6,6 +6,14 @@ const socket = io("http://localhost:3001");
 
 export async function POST(req: Request) {
   try {
+    // 1. API Key Validation
+    const apiKey = req.headers.get("x-api-key");
+    const validKey = process.env.TRACKING_API_KEY;
+
+    if (!apiKey || apiKey !== validKey) {
+      return NextResponse.json({ error: "Unauthorized: Invalid or missing API Key" }, { status: 401 });
+    }
+
     const data = await req.json();
     const { id, lat, lng, speed, passengers, heading } = data;
 
@@ -13,13 +21,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // 1. Persist to Database
+    // 2. Persist to Database
     const location = await prisma.location.create({
       data: {
         vehicle: {
           connectOrCreate: {
             where: { id },
-            create: { id, type: "bus", status: "active" }
+            create: { id, type: "commercial", status: "active" }
           }
         },
         latitude: lat,
@@ -31,7 +39,7 @@ export async function POST(req: Request) {
       }
     });
 
-    // 2. Broadcast to Live Fleet via WebSocket Server
+    // 3. Broadcast to Live Fleet via WebSocket Server
     socket.emit("v_upd", {
       id,
       lat,
