@@ -13,7 +13,19 @@
 
 ### Live Fleet Dashboard
 ![OpenTrack Live Dashboard](public/screenshots/dashboard.png)
-*Real-time vehicle movement and fleet telemetry.*
+*Real-time vehicle movement and high-density fleet telemetry.*
+
+### API-First Developer Portal
+![Developer Portal](public/screenshots/developer.png)
+*Built for integration: Live API documentation and service health monitoring.*
+
+### Spatial Intelligence & Geofencing
+![Geofencing & Alerts](public/screenshots/geofencing.png)
+*Draw complex perimeters to trigger real-time boundary violations.*
+
+### Historical Replay Engine
+![Time-Series Playback](public/screenshots/playback.png)
+*Scrub through months of PostGIS location data with millisecond precision.*
 
 ---
 
