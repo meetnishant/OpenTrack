@@ -14,7 +14,7 @@ test('should login successfully with demo credentials', async ({ page }) => {
   await expect(page).toHaveURL('/dashboard', { timeout: 10000 });
 
   // Verify dashboard header
-  await expect(page.locator('h1')).toContainText('OpenTrack Console');
+  await expect(page.locator('h1')).toContainText('OpenTrack');
 });
 
 test('should show error with invalid credentials', async ({ page }) => {

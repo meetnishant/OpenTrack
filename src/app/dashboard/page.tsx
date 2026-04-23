@@ -7,7 +7,9 @@ import { io } from "socket.io-client";
 import MapComponent from "@/components/MapComponent";
 import { RoutingPanel } from "@/components/RoutingPanel";
 import { VehicleList } from "@/components/VehicleList";
-import { LogOut, Map as MapIcon, Navigation, Activity, LayoutDashboard } from "lucide-react";
+import { PlaybackPanel } from "@/components/PlaybackPanel";
+import { LogOut, Map as MapIcon, Navigation, Activity, LayoutDashboard, History, Settings } from "lucide-react";
+import { clsx } from "clsx";
 
 interface Vehicle {
   id: string;
@@ -18,9 +20,13 @@ interface Vehicle {
   passengers: number;
 }
 
+type Tab = "live" | "history" | "routing";
+
 export default function DashboardPage() {
   const { data: session, status } = useSession();
+  const [activeTab, setActiveTab] = useState<Tab>("live");
   const [routeData, setRouteData] = useState<any>(null);
+  const [historyData, setHistoryData] = useState<any>(null);
   const [fleet, setFleet] = useState<{ [key: string]: Vehicle }>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const fleetRef = useRef<{ [key: string]: Vehicle }>({});
@@ -42,7 +48,7 @@ export default function DashboardPage() {
         }
       }
 
-      const updatedVehicle = {
+      fleetRef.current[data.id] = {
         id: data.id,
         currentLngLat: prev ? prev.currentLngLat : [data.lng, data.lat],
         targetLngLat: [data.lng, data.lat],
@@ -50,31 +56,24 @@ export default function DashboardPage() {
         speed: data.speed,
         passengers: data.passengers
       };
-
-      fleetRef.current[data.id] = updatedVehicle;
       setFleet({ ...fleetRef.current });
     });
 
-    // Interpolation loop (External to state for performance)
     const lerp = () => {
       const lerpFactor = 0.05;
       let changed = false;
-
       Object.values(fleetRef.current).forEach((v) => {
         const dLng = v.targetLngLat[0] - v.currentLngLat[0];
         const dLat = v.targetLngLat[1] - v.currentLngLat[1];
-        
         if (Math.abs(dLng) > 0.000001 || Math.abs(dLat) > 0.000001) {
           v.currentLngLat[0] += dLng * lerpFactor;
           v.currentLngLat[1] += dLat * lerpFactor;
           changed = true;
         }
       });
-
       if (changed) setFleet({ ...fleetRef.current });
       requestAnimationFrame(lerp);
     };
-
     const anim = requestAnimationFrame(lerp);
 
     return () => {
@@ -83,19 +82,13 @@ export default function DashboardPage() {
     };
   }, []);
 
-  if (status === "loading") {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-white">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
-      </div>
-    );
-  }
+  if (status === "loading") return null;
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-inter flex overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-80 bg-zinc-950 border-r border-white/5 flex flex-col h-screen shrink-0 relative z-50 shadow-2xl">
-        <div className="p-6">
+      <aside className="w-80 bg-zinc-950 border-r border-white/5 flex flex-col h-screen shrink-0 relative z-50">
+        <div className="p-6 pb-2">
           <div className="flex items-center gap-3 mb-8">
             <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-500/20">
               <MapIcon className="h-5 w-5 text-white" />
@@ -103,30 +96,68 @@ export default function DashboardPage() {
             <h1 className="text-xl font-bold font-outfit tracking-tight">OpenTrack</h1>
           </div>
 
-          <nav className="space-y-6">
-            <section>
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 mb-4 flex items-center gap-2">
-                <Navigation className="h-3 w-3" /> Navigator
-              </h3>
-              <RoutingPanel 
-                onRouteCalculated={(geom) => setRouteData(geom)} 
-                onClear={() => setRouteData(null)} 
-              />
-            </section>
+          {/* Tab Switcher */}
+          <div className="flex bg-white/5 p-1 rounded-xl mb-8">
+            {[
+              { id: "live", icon: Activity, label: "Live" },
+              { id: "history", icon: History, label: "Replay" },
+              { id: "routing", icon: Navigation, label: "Nav" }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as Tab)}
+                className={clsx(
+                  "flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all",
+                  activeTab === tab.id ? "bg-zinc-800 text-white shadow-lg" : "text-white/30 hover:text-white/60"
+                )}
+              >
+                <tab.icon className="h-3 w-3" />
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
-            <section className="flex-1 min-h-0 flex flex-col">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 mb-4 flex items-center gap-2">
-                <LayoutDashboard className="h-3 w-3" /> Live Fleet ({Object.keys(fleet).length})
-              </h3>
-              <div className="max-h-[40vh]">
+          <div className="space-y-6">
+            {activeTab === "live" && (
+              <section className="animate-in fade-in slide-in-from-left-4 duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 flex items-center gap-2">
+                    <LayoutDashboard className="h-3 w-3" /> Fleet Status
+                  </h3>
+                  <span className="text-[10px] font-bold text-indigo-400 bg-indigo-400/10 px-2 py-0.5 rounded-full">{Object.keys(fleet).length} Units</span>
+                </div>
                 <VehicleList 
                   vehicles={Object.values(fleet)} 
                   onSelect={(id) => setSelectedId(id)} 
                   selectedId={selectedId} 
                 />
-              </div>
-            </section>
-          </nav>
+              </section>
+            )}
+
+            {activeTab === "history" && (
+              <section className="animate-in fade-in slide-in-from-left-4 duration-300">
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 mb-4 flex items-center gap-2">
+                  <History className="h-3 w-3" /> Time Machine
+                </h3>
+                <PlaybackPanel 
+                  vehicleId={selectedId} 
+                  onHistoryLoaded={(data) => setHistoryData(data)} 
+                />
+              </section>
+            )}
+
+            {activeTab === "routing" && (
+              <section className="animate-in fade-in slide-in-from-left-4 duration-300">
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 mb-4 flex items-center gap-2">
+                  <Navigation className="h-3 w-3" /> Directions
+                </h3>
+                <RoutingPanel 
+                  onRouteCalculated={(geom) => setRouteData(geom)} 
+                  onClear={() => setRouteData(null)} 
+                />
+              </section>
+            )}
+          </div>
         </div>
 
         <div className="mt-auto p-6 border-t border-white/5 bg-zinc-950/50 backdrop-blur-md">
@@ -144,7 +175,7 @@ export default function DashboardPage() {
             className="w-full flex items-center justify-center gap-2 rounded-xl bg-white/5 border border-white/10 py-3 text-xs font-bold hover:bg-white/10 transition-all text-white/60 hover:text-white"
           >
             <LogOut className="h-3 w-3" />
-            Terminal Logout
+            Sign Out
           </button>
         </div>
       </aside>
@@ -153,6 +184,7 @@ export default function DashboardPage() {
       <main className="flex-1 h-screen p-4 bg-[#050505]">
         <MapComponent 
           routeData={routeData} 
+          historyData={historyData}
           vehicles={fleet} 
           selectedVehicleId={selectedId} 
         />
