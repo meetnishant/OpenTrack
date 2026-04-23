@@ -19,24 +19,16 @@ To provide a commercial-grade tracking infrastructure that is:
 | **Database** | [PostgreSQL](https://www.postgresql.org/) + [PostGIS](https://postgis.net/) | Industry-standard for geospatial queries and indexing. |
 | **Interchange** | [WebSockets](https://socket.io/) / MQTT | Low-latency updates (<100ms) from vehicle to map. |
 
-## ✨ Core Features
+## 📦 Getting Started
 
-### For End-Users (Dashboard)
-- **Live Tracking**: Smooth, real-time animation of vehicle icons (no "teleporting" dots).
-- **Advanced Filtering**: Categorize vehicles by route, speed, passenger count, or status.
-- **Route Replay**: Interactive timeline to rewatch historical movements.
-- **Geofencing**: Draw virtual boundaries and view breach history.
+First, run the development server:
 
-### For Commercial Users (API)
-- **Fleet Analytics**: Query mileage, idle time, and average speed frequency.
-- **Webhook System**: Get alerted in your own app when a vehicle hits a landmark or speeds.
-- **White-Labeling**: Host your own map styles (JSON) via MapLibre to match your brand.
+```bash
+npm run dev
+```
 
-## 📦 Getting Started (Concept)
-1. **Host Map Tiles**: Download a `.pmtiles` file for your city/country and host it on S3 or a local folder.
-2. **Ingest GPS**: Send a POST request to `/api/v1/track` with coordinates.
-3. **Open Dashboard**: Watch your vehicles move on the map in real-time.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ---
 
-*OpenTrack is currently in the Planning phase.*
+*OpenTrack is currently in the Implementation phase.*

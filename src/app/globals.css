@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-outfit: var(--font-outfit);
+  --font-inter: var(--font-inter);
+  
+  --color-indigo-500: #6366f1;
+  --color-purple-500: #a855f7;
+  
+  @keyframes blob {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
+  }
+}
+
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), sans-serif;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-outfit), sans-serif;
+}
+
+/* Custom Utilities */
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
