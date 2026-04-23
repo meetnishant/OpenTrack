@@ -34,7 +34,8 @@ export default function DashboardPage() {
   if (status === "unauthenticated") redirect("/");
 
   useEffect(() => {
-    const socket = io("http://localhost:3001");
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+    const socket = io(socketUrl);
 
     socket.on("v_upd", (data) => {
       const prev = fleetRef.current[data.id];

@@ -7,6 +7,10 @@ const socket = io("http://localhost:3001");
 export async function POST(req: Request) {
   try {
     // 1. API Key Validation
+    if (process.env.DISABLE_PUBLIC_INGESTION === "true") {
+      return NextResponse.json({ error: "API Ingestion is disabled in Demo Mode" }, { status: 403 });
+    }
+
     const apiKey = req.headers.get("x-api-key");
     const validKey = process.env.TRACKING_API_KEY;
 

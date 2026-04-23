@@ -43,7 +43,7 @@ describe('Live Engine WebSocket Broadcast', () => {
   });
 
   it('should broadcast vehicle updates to all clients', async () => {
-    const mockUpdate = { id: 'V-101', lat: 43.76, lng: 11.25 };
+    const mockUpdate = { id: 'V-101', lat: 25.43, lng: 81.84 };
     
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error('Test timed out')), 4000);
@@ -51,7 +51,7 @@ describe('Live Engine WebSocket Broadcast', () => {
       client2.on('v_upd', (data) => {
         clearTimeout(timeout);
         expect(data.id).toBe('V-101');
-        expect(data.lat).toBe(43.76);
+        expect(data.lat).toBe(25.43);
         resolve();
       });
 

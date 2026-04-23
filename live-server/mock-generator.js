@@ -1,4 +1,4 @@
-const { io } = require('socket.io-client');
+import { io } from 'socket.io-client';
 
 const socket = io('http://localhost:3001');
 
@@ -21,7 +21,6 @@ function initVehicles() {
 
 function updatePositions() {
   vehicles.forEach(v => {
-    // Move slightly (simulating city driving speed)
     const moveFactor = 0.0002;
     v.lat += (Math.random() - 0.5) * moveFactor;
     v.lng += (Math.random() - 0.5) * moveFactor;
