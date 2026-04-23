@@ -9,6 +9,14 @@
 
 ---
 
+## 🖼️ Gallery
+
+### Live Fleet Dashboard
+![OpenTrack Live Dashboard](file:///Users/meetnishant/.gemini/antigravity/brain/293e5c78-5953-4212-b58d-803e5a442e76/dashboard_live_1776933787554.png)
+*Real-time vehicle movement and fleet telemetry in Prayagraj.*
+
+---
+
 ## 🚀 Key Features
 
 ### 📡 Real-time Telemetry (60 FPS)
