@@ -1,0 +1,111 @@
+openapi: 3.0.0
+info:
+  title: OpenTrack Commercial API
+  description: API for real-time vehicle tracking, geofencing, and fleet analytics.
+  version: 1.0.0
+
+servers:
+  - url: https://api.opentrack.io/v1
+
+paths:
+  /tracking/live:
+    get:
+      summary: Get live positions for a fleet
+      parameters:
+        - name: fleet_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: filter_status
+          in: query
+          schema:
+            type: string
+            enum: [active, idle, speeding]
+      responses:
+        '200':
+          description: A GeoJSON FeatureCollection of vehicle positions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeoJSON'
+
+  /vehicles/{id}/history:
+    get:
+      summary: Retrieve historical route data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Historical movement data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TrackingPoint'
+
+  /geofencing/alerts:
+    post:
+      summary: Create a new geofence alert
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeofenceRequest'
+      responses:
+        '201':
+          description: Alert created successfully
+
+components:
+  schemas:
+    TrackingPoint:
+      type: object
+      properties:
+        lat: { type: number }
+        lng: { type: number }
+        speed: { type: number }
+        heading: { type: number }
+        timestamp: { type: string, format: date-time }
+        passengers: { type: integer }
+
+    GeofenceRequest:
+      type: object
+      properties:
+        vehicle_ids:
+          type: array
+          items: { type: string }
+        zone_geometry:
+          type: object
+          description: GeoJSON Polygon defining the zone
+        alert_on:
+          type: string
+          enum: [entry, exit, both]
+        webhook_url:
+          type: string
+
+    GeoJSON:
+      type: object
+      properties:
+        type:
+          type: string
+          example: FeatureCollection
+        features:
+          type: array
+          items:
+            type: object
