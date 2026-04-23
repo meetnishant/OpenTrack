@@ -47,14 +47,11 @@ export default function MapComponent({ routeData }: MapComponentProps) {
     if (map.current) return;
 
     try {
-      console.log("MapComponent: Initializing with Global Raster + Local Vector...");
+      console.log("MapComponent: Initializing with Premium Dark Global Tiles...");
 
-      // @ts-ignore
-      if (!window._pmtilesRegistered) {
+      if (!maplibregl.getProtocol("pmtiles")) {
         const protocol = new Protocol();
         maplibregl.addProtocol("pmtiles", protocol.tile);
-        // @ts-ignore
-        window._pmtilesRegistered = true;
       }
 
       map.current = new maplibregl.Map({
@@ -63,18 +60,18 @@ export default function MapComponent({ routeData }: MapComponentProps) {
           version: 8,
           glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
           sources: {
-            // Global Raster Fallback (OSM)
-            osm: {
+            // High-Quality Global Dark Matter Tiles (CartoDB)
+            carto: {
               type: "raster",
-              tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+              tiles: ["https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"],
               tileSize: 256,
-              attribution: '© OpenStreetMap contributors'
+              attribution: '© OpenStreetMap © CARTO'
             },
-            // Local High-Fidelity Vector (PMTiles)
+            // Local PMTiles (Florence/Monaco) - Overlays on top
             protomaps: {
               type: "vector",
               url: `pmtiles://${window.location.origin}/monaco.pmtiles`,
-              attribution: '© Protomaps © OpenStreetMap'
+              attribution: '© Protomaps'
             },
             vehicles: {
               type: "geojson",
@@ -87,30 +84,21 @@ export default function MapComponent({ routeData }: MapComponentProps) {
           },
           layers: [
             {
-              id: "osm-layer",
+              id: "global-base",
               type: "raster",
-              source: "osm",
-              paint: { "raster-opacity": 0.4, "raster-brightness-max": 0.3 } // Dim for dark mode feel
+              source: "carto",
+              paint: { "raster-opacity": 1 }
             },
+            // Local Vector Highlights (when available)
             {
-              id: "background-dim",
-              type: "background",
-              paint: { "background-color": "#000", "background-opacity": 0.5 }
-            },
-            // Vector Layers (where available)
-            {
-              id: "vector-buildings",
+              id: "local-buildings",
               type: "fill",
               source: "protomaps",
               "source-layer": "buildings",
-              paint: { "fill-color": "#222", "fill-opacity": 0.8 }
-            },
-            {
-              id: "vector-roads",
-              type: "line",
-              source: "protomaps",
-              "source-layer": "roads",
-              paint: { "line-color": "#444", "line-width": 1.5 }
+              paint: { 
+                "fill-color": "#6366f1", 
+                "fill-opacity": 0.1 
+              }
             },
             {
               id: "route-line",
@@ -120,8 +108,8 @@ export default function MapComponent({ routeData }: MapComponentProps) {
               paint: {
                 "line-color": "#6366f1",
                 "line-width": 6,
-                "line-opacity": 0.9,
-                "line-blur": 1
+                "line-opacity": 1,
+                "line-blur": 0.5
               }
             },
             {
@@ -135,7 +123,6 @@ export default function MapComponent({ routeData }: MapComponentProps) {
                 "circle-stroke-color": "#000"
               }
             },
-            // Labels (Symbol layers)
             {
               id: "vehicle-labels",
               type: "symbol",
@@ -143,24 +130,20 @@ export default function MapComponent({ routeData }: MapComponentProps) {
               layout: {
                 "text-field": ["get", "id"],
                 "text-font": ["Open Sans Regular"],
-                "text-size": 10,
-                "text-offset": [0, 1.5],
+                "text-size": 11,
+                "text-offset": [0, 1.8],
                 "text-anchor": "top"
               },
               paint: {
                 "text-color": "#fff",
                 "text-halo-color": "#000",
-                "text-halo-width": 1
+                "text-halo-width": 1.5
               }
             }
           ],
           center: [11.254, 43.767],
           zoom: 13
         }
-      });
-
-      map.current.on("error", (e) => {
-        console.error("MapLibre Error:", e);
       });
 
       const socket = io("http://localhost:3001");
@@ -188,28 +171,37 @@ export default function MapComponent({ routeData }: MapComponentProps) {
         map.current = null;
       };
     } catch (err: any) {
-      console.error("Initialization failed:", err);
       setError(err.message);
     }
   }, []);
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-3xl border border-white/10 bg-black shadow-2xl">
+    <div className="relative h-full w-full overflow-hidden rounded-[2.5rem] border border-white/5 bg-black shadow-2xl">
       <div ref={mapContainer} className="h-full w-full" />
       
-      <div className="absolute top-4 left-4 z-10 rounded-xl bg-black/80 border border-white/10 p-4 backdrop-blur-2xl">
-        <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2 font-inter">Live Fleet Intelligence</h3>
-        <div className="flex items-center gap-2">
-           <span className="relative flex h-2 w-2">
-             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-           </span>
-           <span className="text-sm font-semibold font-outfit text-white">Active Units: {fleetCount}</span>
+      {/* Floating Insight Panel */}
+      <div className="absolute top-6 left-6 z-10 rounded-2xl bg-zinc-950/80 border border-white/10 p-5 backdrop-blur-2xl shadow-2xl">
+        <div className="flex items-center gap-4">
+          <div className="flex flex-col">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 mb-1">Live Fleet</h3>
+            <div className="flex items-center gap-2">
+              <div className="flex h-2 w-2">
+                <div className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75"></div>
+                <div className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></div>
+              </div>
+              <span className="text-lg font-bold font-outfit text-white tracking-tight">{fleetCount} <span className="text-xs text-white/30 font-normal">Active</span></span>
+            </div>
+          </div>
+          <div className="h-10 w-px bg-white/10 mx-2" />
+          <div className="flex flex-col">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 mb-1">Network</h3>
+            <span className="text-xs font-semibold text-white/60">Healthy</span>
+          </div>
         </div>
       </div>
 
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm z-20 p-8 text-center">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/90 backdrop-blur-md z-20 p-8 text-center">
           <div className="max-w-md">
             <p className="text-red-400 font-bold mb-2 uppercase text-xs tracking-widest">Initialization Error</p>
             <p className="text-white/60 text-sm">{error}</p>
