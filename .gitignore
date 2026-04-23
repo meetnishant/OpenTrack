@@ -1,8 +1,23 @@
-task.md
-.DS_Store
+# Dependencies
 node_modules/
-.env
+
+# Next.js
 .next/
 out/
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS Files
+.DS_Store
+
+# Build/Logs
 build/
 *.log
+
+# Task tracking
+task.md
