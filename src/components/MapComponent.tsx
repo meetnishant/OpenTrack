@@ -111,8 +111,8 @@ export default function MapComponent({ routeData, historyData, vehicles, selecte
             { id: "vehicle-marker", type: "symbol", source: "vehicles", layout: { "icon-image": "triangle", "icon-size": 0.8, "icon-rotate": ["get", "bearing"], "icon-rotation-alignment": "map", "icon-allow-overlap": true, "text-field": ["get", "id"], "text-font": ["Open Sans Regular"], "text-size": 11, "text-offset": [0, 1.8], "text-anchor": "top" }, paint: { "icon-color": "#facc15", "text-color": "#fff", "text-halo-color": "#000", "text-halo-width": 1.5 } },
             { id: "vehicle-dot", type: "circle", source: "vehicles", paint: { "circle-radius": 5, "circle-color": "#facc15", "circle-stroke-width": 2, "circle-stroke-color": "#000" } }
           ],
-          center: [11.254, 43.767],
-          zoom: 13
+          center: [81.8463, 25.4358],
+          zoom: 12
         }
       });
 

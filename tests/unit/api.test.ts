@@ -25,8 +25,8 @@ test('POST /api/v1/track should return 200 with valid API key', async () => {
       },
       body: JSON.stringify({ 
         id: 'TEST-AUTH-01', 
-        lat: 43.767, 
-        lng: 11.254,
+        lat: 25.4358, 
+        lng: 81.8463,
         speed: 50,
         passengers: 5
       })
