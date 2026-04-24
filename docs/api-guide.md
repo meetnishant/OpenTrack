@@ -48,16 +48,33 @@ Retrieves a GeoJSON LineString of a vehicle's path.
 
 ---
 
-## 🏗️ Enterprise Hub
+## 🏗️ Enterprise Integration APIs
 
 ### 🪝 Real-time Webhooks
-OpenTrack can push events directly to your backend.
+`POST /api/v1/webhooks`
+OpenTrack pushes JSON events directly to your backend.
+*   `location.updated`: Triggered on every telemetry point.
+*   `batch.ingested`: Triggered when an offline data dump is successfully parsed.
 *   `geofence.entry`: Triggered when a unit enters a restricted zone.
-*   `geofence.exit`: Triggered when a unit leaves a zone.
-*   `speeding.alert`: (Story 10) Triggered for dangerous driving.
 
-### 📋 Asset Management
-Manage vehicle metadata (Drivers, Models, License Plates) via `v1/assets`.
+### 📦 Batch Telemetry Ingestion
+`POST /api/v1/track/batch`
+Upload massive arrays of GPS coordinates when IoT gateways recover from network dead zones.
+*   **Payload**: Array of telemetry objects.
+*   **Action**: Performs high-performance bulk database upserts via Prisma.
+
+### 🔐 API Key Management
+`POST /api/v1/keys`
+Provision cryptographically secure, scope-based keys (`read`, `write`, `admin`) for B2B API access.
+
+### 🗺️ Dynamic Dispatching (Distance Matrix)
+`POST /api/v1/routing/matrix`
+Provide an origin and an array of `vehicleIds`. OSRM dynamically calculates the real-time ETA for *every* vehicle simultaneously and identifies the fastest responder.
+
+### 📥 Historical Data Export
+`GET /api/v1/export?vehicleId=V-100&date=YYYY-MM-DD`
+Bypass dashboards and pipe raw telemetry directly into your own data lakes.
+*   **Formats**: `json` or fully valid `geojson` (for direct map rendering).
 
 ---
 
