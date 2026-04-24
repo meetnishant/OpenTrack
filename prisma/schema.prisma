@@ -57,3 +57,13 @@ model Webhook {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
 }
+
+model ApiKey {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  name      String
+  scope     String   @default("read") // "read", "write", "admin"
+  createdAt DateTime @default(now())
+  lastUsed  DateTime?
+}
+

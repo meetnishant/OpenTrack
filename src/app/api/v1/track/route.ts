@@ -43,6 +43,9 @@ export async function POST(req: Request) {
       }
     });
 
+    // Fire webhook asynchronously
+    import("@/lib/webhooks").then(w => w.dispatchWebhook("location.updated", location));
+
     // 3. Broadcast to Live Fleet via WebSocket Server
     socket.emit("v_upd", {
       id,
