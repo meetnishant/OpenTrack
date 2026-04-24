@@ -1,12 +1,12 @@
 import { io } from "socket.io-client";
 
 const SOCKET_URL = "http://localhost:3001";
-const NUM_VEHICLES = 1000;
+const NUM_VEHICLES = 100;
 
 console.log(`🔥 Starting stress test: Spawning ${NUM_VEHICLES} units...`);
 
 const vehicles = Array.from({ length: NUM_VEHICLES }).map((_, i) => ({
-  id: `STRESS-${i}`,
+  id: `V-${i + 1}`,
   lat: 25.4358 + (Math.random() - 0.5) * 0.1,
   lng: 81.8463 + (Math.random() - 0.5) * 0.1,
   speed: Math.random() * 60,
