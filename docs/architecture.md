@@ -29,6 +29,8 @@ graph TD
     subgraph "Commercial Integration"
         DB --> CAPI[Commercial REST API]
         CAPI --> EXT[External 3rd Party App]
+        V --> WH[Webhook Dispatcher]
+        WH -->|POST JSON| EXT
     end
 ```
 
