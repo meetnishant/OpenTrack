@@ -39,9 +39,11 @@ Draw complex safety zones directly on the map. Our client-side spatial engine (T
 
 ### 🔌 API-First Engine
 A full-featured developer portal providing REST access to every core system:
-*   **Routing**: OSRM-powered pathfinding.
-*   **Analytics**: Daily distance and idle-time aggregation.
-*   **Webhooks**: Real-time event streaming to your own backend.
+*   **Routing & Matrix ETAs**: OSRM-powered pathfinding and multi-vehicle dispatching (`/api/v1/routing/matrix`).
+*   **Analytics & Export**: Daily distance, idle-time aggregation, and GeoJSON historical dumps (`/api/v1/export`).
+*   **Webhooks**: Real-time event streaming to your own backend via `location.updated` subscriptions.
+*   **Batch Ingestion**: High-throughput telemetry ingestion for IoT gateways (`/api/v1/track/batch`).
+*   **API Key Management**: Secure provisioning of access tokens mapped to specific scopes (`/api/v1/keys`).
 
 ---
 

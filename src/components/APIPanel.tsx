@@ -74,10 +74,57 @@ const ENDPOINTS: APIEndpoint[] = [
     description: "Register an external endpoint for real-time alerts.",
     params: [
       { name: "url", type: "string", desc: "Destination URL" },
-      { name: "events", type: "array", desc: "e.g. ['geofence.entry']" }
+      { name: "events", type: "array", desc: "e.g. ['location.updated', 'batch.ingested']" }
     ],
     example: `curl -X POST /api/v1/webhooks \\
-  -d '{"url": "https://myapp.com/hook", "events": ["geofence.entry"]}'`
+  -H "Content-Type: application/json" \\
+  -d '{"url": "https://myapp.com/hook", "events": ["location.updated"]}'`
+  },
+  {
+    method: "POST",
+    path: "/api/v1/track/batch",
+    description: "Ingest a high-volume batch of offline telemetry coordinates.",
+    params: [
+      { name: "payload", type: "array", desc: "Array of location objects" }
+    ],
+    example: `curl -X POST /api/v1/track/batch \\
+  -H "Content-Type: application/json" \\
+  -d '[{"id": "V-100", "lat": 25.43, "lng": 81.84}]'`
+  },
+  {
+    method: "POST",
+    path: "/api/v1/keys",
+    description: "Provision a new API Key for external authentication.",
+    params: [
+      { name: "name", type: "string", desc: "Name of the consuming application" },
+      { name: "scope", type: "string", desc: "'read', 'write', or 'admin'" }
+    ],
+    example: `curl -X POST /api/v1/keys \\
+  -H "Content-Type: application/json" \\
+  -d '{"name": "External Dispatcher", "scope": "write"}'`
+  },
+  {
+    method: "POST",
+    path: "/api/v1/routing/matrix",
+    description: "Calculate distances and ETAs for multiple vehicles to a single destination to find the nearest unit.",
+    params: [
+      { name: "origin", type: "array", desc: "[lng, lat] coordinate" },
+      { name: "vehicleIds", type: "array", desc: "Array of vehicle IDs to compare" }
+    ],
+    example: `curl -X POST /api/v1/routing/matrix \\
+  -H "Content-Type: application/json" \\
+  -d '{"origin": [81.8463, 25.4358], "vehicleIds": ["V-1", "V-2"]}'`
+  },
+  {
+    method: "GET",
+    path: "/api/v1/export",
+    description: "Download a raw dump of historical locations for external analytics.",
+    params: [
+      { name: "vehicleId", type: "string", desc: "ID of the vehicle" },
+      { name: "date", type: "string", desc: "YYYY-MM-DD" },
+      { name: "format", type: "string", desc: "'json' or 'geojson'" }
+    ],
+    example: `curl -X GET "/api/v1/export?vehicleId=V-100&date=2026-04-24&format=geojson"`
   }
 ];
 
