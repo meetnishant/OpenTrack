@@ -8,6 +8,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import * as turf from "@turf/turf";
+import { Sun, Moon } from "lucide-react";
 
 interface MapComponentProps {
   routeData?: any;
@@ -142,6 +143,8 @@ export default function MapComponent({
   const draw = useRef<MapboxDraw | null>(null);
   const animationFrame = useRef<number>(0);
   const vehiclesRef = useRef<{ [key: string]: Vehicle }>(vehicles);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   // Keep ref in sync
   useEffect(() => {
@@ -204,6 +207,30 @@ export default function MapComponent({
     animationFrame.current = requestAnimationFrame(animate);
   };
 
+  // Theme Applier
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+    const m = map.current;
+    
+    if (isDarkMode) {
+      m.setLayoutProperty("global-base-dark", "visibility", "visible");
+      m.setLayoutProperty("global-base-light", "visibility", "none");
+      m.setPaintProperty("water", "fill-color", "#1e1b4b");
+      m.setPaintProperty("buildings", "fill-extrusion-color", "#312e81");
+      m.setPaintProperty("roads", "line-color", "#4338ca");
+      m.setPaintProperty("vehicle-marker", "text-color", "#fff");
+      m.setPaintProperty("vehicle-marker", "text-halo-color", "#000");
+    } else {
+      m.setLayoutProperty("global-base-dark", "visibility", "none");
+      m.setLayoutProperty("global-base-light", "visibility", "visible");
+      m.setPaintProperty("water", "fill-color", "#bae6fd"); // Light blue water
+      m.setPaintProperty("buildings", "fill-extrusion-color", "#e2e8f0"); // Light buildings
+      m.setPaintProperty("roads", "line-color", "#94a3b8"); // Gray roads
+      m.setPaintProperty("vehicle-marker", "text-color", "#000");
+      m.setPaintProperty("vehicle-marker", "text-halo-color", "#fff");
+    }
+  }, [isDarkMode, mapLoaded]);
+
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
@@ -222,26 +249,36 @@ export default function MapComponent({
           version: 8,
           glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
           sources: {
-            carto: { type: "raster", tiles: ["https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"], tileSize: 256 },
+            "carto-dark": { type: "raster", tiles: ["https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"], tileSize: 256 },
+            "carto-light": { type: "raster", tiles: ["https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png"], tileSize: 256 },
             protomaps: { type: "vector", url: `pmtiles://${window.location.origin}/monaco.pmtiles` },
-            vehicles: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
+            vehicles: { type: "geojson", data: { type: "FeatureCollection", features: [] }, cluster: true, clusterMaxZoom: 14, clusterRadius: 50 },
             route: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
             history: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
             "history-marker": { type: "geojson", data: { type: "FeatureCollection", features: [] } }
           },
           layers: [
-            { id: "global-base", type: "raster", source: "carto" },
+            { id: "global-base-dark", type: "raster", source: "carto-dark", layout: { visibility: "visible" } },
+            { id: "global-base-light", type: "raster", source: "carto-light", layout: { visibility: "none" } },
             { id: "water", type: "fill", source: "protomaps", "source-layer": "water", paint: { "fill-color": "#1e1b4b" } },
-            { id: "buildings", type: "fill", source: "protomaps", "source-layer": "buildings", paint: { "fill-color": "#312e81", "fill-opacity": 0.5 } },
+            { id: "buildings", type: "fill-extrusion", source: "protomaps", "source-layer": "buildings", paint: { "fill-extrusion-color": "#312e81", "fill-extrusion-height": ["get", "height"], "fill-extrusion-base": ["get", "min_height"], "fill-extrusion-opacity": 0.6 } },
             { id: "roads", type: "line", source: "protomaps", "source-layer": "roads", paint: { "line-color": "#4338ca", "line-width": 1 } },
             { id: "history-path", type: "line", source: "history", layout: { "line-join": "round", "line-cap": "round" }, paint: { "line-color": "#22d3ee", "line-width": 4, "line-opacity": 0.6, "line-dasharray": [2, 2] } },
             { id: "route-line", type: "line", source: "route", layout: { "line-join": "round", "line-cap": "round" }, paint: { "line-color": "#6366f1", "line-width": 6, "line-opacity": 0.8 } },
             { id: "playback-marker", type: "symbol", source: "history-marker", layout: { "icon-image": "triangle-cyan", "icon-size": 1.2, "icon-rotate": ["get", "bearing"], "icon-rotation-alignment": "map", "icon-allow-overlap": true }, paint: { "icon-color": "#22d3ee" } },
-            { id: "vehicle-marker", type: "symbol", source: "vehicles", layout: { "icon-image": "triangle", "icon-size": 0.8, "icon-rotate": ["get", "bearing"], "icon-rotation-alignment": "map", "icon-allow-overlap": true, "text-field": ["get", "id"], "text-font": ["Open Sans Regular"], "text-size": 11, "text-offset": [0, 1.8], "text-anchor": "top" }, paint: { "icon-color": "#facc15", "text-color": "#fff", "text-halo-color": "#000", "text-halo-width": 1.5 } },
-            { id: "vehicle-dot", type: "circle", source: "vehicles", paint: { "circle-radius": 5, "circle-color": "#facc15", "circle-stroke-width": 2, "circle-stroke-color": "#000" } }
+            
+            // Clustered Vehicles
+            { id: "vehicle-cluster", type: "circle", source: "vehicles", filter: ["has", "point_count"], paint: { "circle-color": ["step", ["get", "point_count"], "#facc15", 5, "#f97316", 15, "#ef4444"], "circle-radius": ["step", ["get", "point_count"], 15, 5, 20, 15, 25], "circle-stroke-width": 3, "circle-stroke-color": "#000" } },
+            { id: "vehicle-cluster-count", type: "symbol", source: "vehicles", filter: ["has", "point_count"], layout: { "text-field": "{point_count_abbreviated}", "text-font": ["Open Sans Bold"], "text-size": 14 }, paint: { "text-color": "#000" } },
+            
+            // Unclustered Vehicles
+            { id: "vehicle-marker", type: "symbol", source: "vehicles", filter: ["!", ["has", "point_count"]], layout: { "icon-image": "triangle", "icon-size": 0.8, "icon-rotate": ["get", "bearing"], "icon-rotation-alignment": "map", "icon-allow-overlap": true, "text-field": ["get", "id"], "text-font": ["Open Sans Regular"], "text-size": 11, "text-offset": [0, 1.8], "text-anchor": "top" }, paint: { "icon-color": "#facc15", "text-color": "#fff", "text-halo-color": "#000", "text-halo-width": 1.5 } },
+            { id: "vehicle-dot", type: "circle", source: "vehicles", filter: ["!", ["has", "point_count"]], paint: { "circle-radius": 5, "circle-color": "#facc15", "circle-stroke-width": 2, "circle-stroke-color": "#000" } }
           ],
           center: [81.8463, 25.4358],
-          zoom: 12
+          zoom: 13,
+          pitch: 55,
+          bearing: -17.6
         }
       });
 
@@ -274,6 +311,7 @@ export default function MapComponent({
           ctx2.fillStyle = '#22d3ee'; ctx2.beginPath(); ctx2.moveTo(16, 0); ctx2.lineTo(32, 32); ctx2.lineTo(16, 26); ctx2.lineTo(0, 32); ctx2.closePath(); ctx2.fill();
           map.current?.addImage('triangle-cyan', ctx2.getImageData(0, 0, 32, 32));
         }
+        setMapLoaded(true);
         animate();
       });
 
@@ -316,6 +354,17 @@ export default function MapComponent({
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
           </svg>
+        </button>
+        <div className="h-px bg-white/10 my-1 rounded" />
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsDarkMode(!isDarkMode);
+          }}
+          className={`p-3 bg-zinc-900 border border-white/10 rounded-xl shadow-xl transition-colors focus:outline-none ${!isDarkMode ? 'text-amber-400 hover:bg-zinc-800' : 'text-indigo-400 hover:bg-zinc-800'}`}
+          title={isDarkMode ? "Switch to Day Mode" : "Switch to Dark Mode"}
+        >
+          {isDarkMode ? <Sun width={20} height={20} /> : <Moon width={20} height={20} />}
         </button>
       </div>
     </div>
